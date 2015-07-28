@@ -4,24 +4,13 @@
  */
 package ticket;
 
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.Statement;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.io.*;
+import java.util.*;
 import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletException;
 //import javax.servlet.annotation.WebServlet;
-import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
+import javax.servlet.http.*;
+import javax.jdo.*;
 
 /**
  *
@@ -44,31 +33,25 @@ public class LoginServlet extends HttpServlet {
         response.setContentType("text/html;charset=UTF-8");
         HttpSession session = request.getSession();
         boolean found = false;
+        ArrayList<TicketData> list;
 
         try {
             // リクエストパラメータから入力されたパスワードを取り出し
             String password = request.getParameter("password");
             String user = request.getParameter("user");
 
-            // データベースに接続
-            Class.forName("org.apache.derby.jdbc.ClientDriver");
-            String driverURL = "jdbc:derby://localhost:1527/Userimformation";
-            Connection con = DriverManager.getConnection(driverURL, "db", "db");
-            //con = jdbctest.getConnection(); //connection pooling を使う場合
-            Statement stmt = con.createStatement();
-
-            //データベースに入力されたユーザ名とパスワードに一致するレコードがあるかを問い合わせる
-            String sql = "select * from T_USER where USER_NAME=? and PASSWORD=?";
-            PreparedStatement ps = con.prepareStatement(sql);
-            ps.setString(1, user);
-            ps.setString(2, password);
-            ResultSet rs = ps.executeQuery();
-
-            // 一件でもレコードがあれば、ユーザ名とパスワードが正しく入力された。
-            if (rs.next()) {
-                found = true;
-            }
-
+            PersistenceManagerFactory factory = PMF.get();
+            PersistenceManager manager = factory.getPersistenceManager();
+            Query que = manager.newQuery(UserData.class);
+            que.setFilter("username==Uparam && password==Pparam");
+            que.declareParameters("String Uparam");
+            que.declareParameters("String Pparam");
+    		UserData data = (UserData) que.execute(user, password);
+    	
+    		if(data!=null){
+    			 found = true;
+    		}
+    		
             String nextJsp;
             if (!found) {
                 // パスワードが正しくない場合、セッションを無効にする。
@@ -83,25 +66,11 @@ public class LoginServlet extends HttpServlet {
                 session.setAttribute("user", user);
                 
                 // データベースに商品についての問い合わせを行う
-               //Class.forName("org.apache.derby .jdbc.ClientDriver");
-                String driverURL1 = "jdbc:derby://localhost:1527/Kaijou";
-                Connection con1 = DriverManager.getConnection(driverURL1, "db", "db");
-                Statement stmt1 = con1.createStatement();
-                sql = "select * from T_KAIJOU";
-                rs = stmt1.executeQuery(sql);
-                List<Map<String, Object>> list = new ArrayList<Map<String, Object>>();
-                while (rs.next()) {
-                    Map<String, Object> record = new HashMap<String, Object>();
-                    record.put("id", new Integer(rs.getInt("KAIJOU_ID")));
-                    record.put("name", rs.getString("KAIJOU_NAME"));
-                    record.put("price", new Integer(rs.getInt("PRICE")));
-                    list.add(record);
-                }
+                que = manager.newQuery(TicketData.class);
+                list = (ArrayList<TicketData>) que.execute();
+               
                 // データベースの後始末。
-                rs.close();
-                stmt.close();
-                stmt1.close();
-                con.close();
+                manager.close();
                 // 商品名のリストを リクエスト変数　data にしまう。
                 request.setAttribute("data", list);
                 // 次のページに移動
