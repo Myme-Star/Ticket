@@ -48,6 +48,12 @@
         <servlet-name>SetServlet</servlet-name>
         <url-pattern>/set.do</url-pattern>
     </servlet-mapping>
+    
+     <servlet-mapping>
+        <servlet-name>AddUserServlet</servlet-name>
+        <url-pattern>/add</url-pattern>
+    </servlet-mapping>
+    
     <session-config>
         <session-timeout>
             30
