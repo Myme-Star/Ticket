@@ -5,6 +5,7 @@ import java.net.URL;
 import java.util.*;
 
 import javax.jdo.*;
+import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletException;
 import javax.servlet.http.*;
 
@@ -22,8 +23,16 @@ public class AddUserServlet extends HttpServlet {
 	protected void doPost(HttpServletRequest req, HttpServletResponse resp)
 			throws ServletException, IOException {
 		req.setCharacterEncoding("UTF-8");
-		String username = req.getParameter("username");
+		String username = req.getParameter("user");
 		String password = req.getParameter("password");
+		String password2 = req.getParameter("password2"); 
+		
+		RequestDispatcher rd;
+		
+		if(!password.equals(password2)){
+			 rd = req.getRequestDispatcher("/addUser.jsp");
+             rd.forward(req, resp);
+		}
 	
 		UserData data = new UserData(username, password);
 		PersistenceManagerFactory factory = PMF.get();
@@ -33,6 +42,7 @@ public class AddUserServlet extends HttpServlet {
 		} finally {
 			manager.close();
 		}
-		//resp.sendRedirect(/add.html);
+		 rd = req.getRequestDispatcher("/login.jsp");
+         rd.forward(req, resp);
 	}
 }
