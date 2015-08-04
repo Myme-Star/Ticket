@@ -28,4 +28,7 @@
         <input type="submit" value="ログイン" />
         </form>
     </form>
+    <p>
+    <a href="addUser.jsp">新規登録</a>
+    </p>
 </html>

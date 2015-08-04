@@ -14,6 +14,11 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import javax.jdo.JDOObjectNotFoundException;
+import javax.jdo.PersistenceManager;
+import javax.jdo.PersistenceManagerFactory;
+import javax.jdo.Query;
 import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -23,139 +28,115 @@ import javax.servlet.http.HttpSession;
 
 /**
  *
- * @author 
+ * @author
  */
 public class SetServlet extends HttpServlet {
 
-    /**
-     * Processes requests for both HTTP
-     * <code>GET</code> and
-     * <code>POST</code> methods.
-     *
-     * @param request servlet request
-     * @param response servlet response
-     * @throws ServletException if a servlet-specific error occurs
-     * @throws IOException if an I/O error occurs
-     */
-    protected void processRequest(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
-        response.setContentType("text/html;charset=UTF-8");
-        //PrintWriter out = response.getWriter();
+	/**
+	 * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
+	 * methods.
+	 *
+	 * @param request
+	 *            servlet request
+	 * @param response
+	 *            servlet response
+	 * @throws ServletException
+	 *             if a servlet-specific error occurs
+	 * @throws IOException
+	 *             if an I/O error occurs
+	 */
+	protected void processRequest(HttpServletRequest request,
+			HttpServletResponse response) throws ServletException, IOException {
+		response.setContentType("text/html;charset=UTF-8");
 
-        // Check Box の情報をとりだす。
-//        HttpSession session = request.getSession();
-        String[] strVals = request.getParameterValues("placeid");
-        int numChecks = 0;
-        if (strVals != null) {
-            numChecks = strVals.length; // チェックの個数
-        } else { // 何もチェックされていない。
-            numChecks = 0;
-        }
+		// PrintWriter out = response.getWriter();
 
-        try {
-            HttpSession session = request.getSession();
-            Class.forName("org.apache.derby.jdbc.ClientDriver");
-            String driverURL = "jdbc:derby://localhost:1527/Kaijou";
-            Connection con = DriverManager.getConnection(driverURL, "db", "db");
-            // Connection con = jdbctest.getConnection();
-            Statement stmt = con.createStatement();
+		// Check Box の情報をとりだす。
+		HttpSession session = request.getSession();
+		String[] strVals = request.getParameterValues("placeid");
+		int numChecks = 0;
+		if (strVals != null) {
+			numChecks = strVals.length; // チェックの個数
+		} else { // 何もチェックされていない。
+			numChecks = 0;
+		}
 
-            List<Map<String, Object>> list = new ArrayList<Map<String, Object>>();
+		try {
 
-            // Checkbox の (name: shohinid)と結び付けられた value の並びをとりだす。
-            for (int i = 0; i < numChecks; i++) {
-                //  i番目のshohinid 項目の value をとりだす。
-                int idFromCB = Integer.parseInt(strVals[i]);
+			PersistenceManagerFactory factory = PMF.get();
+			PersistenceManager manager = factory.getPersistenceManager();
 
-                // その商品の情報（名前、価格）をDBから取り出す。合計金額も計算する。
-                String sql = "select * from T_KAIJOU where KAIJOU_ID ="
-                        + idFromCB;
-                ResultSet rs = stmt.executeQuery(sql);
-                if (rs.next()) {
-                    Map<String, Object> record = new HashMap<String, Object>();
-                    record.put("id", new Integer(rs.getInt("KAIJOU_ID")));
-                    record.put("name", rs.getString("KAIJOU_NAME"));
-                    list.add(record);
-                }
+			long idFromCB = Long.parseLong(strVals[0]);
+			PlaceData obj = (PlaceData) (manager.getObjectById(PlaceData.class, idFromCB));
 
-                rs.close();
-            }//end for (int i チェックされた商品についての繰り返し。
-            stmt.close();
-            con.close();
+			// 表示のため、結果をリクエスト変数にしまう。
+			request.setAttribute("count", numChecks);
+			session.setAttribute("kaijou", obj.getPlace());
 
-            // 表示のため、結果をリクエスト変数にしまう。
-            request.setAttribute("count", numChecks);
-            session.setAttribute("kaijou", list);
+			// laneの情報を呼び出す
+			String que = "select from " + LaneData.class.getName()
+					+ " order by idx asc";
+			List<LaneData> lane = (List<LaneData>) manager.newQuery(que)
+					.execute();
 
-            //laneの情報を呼び出す
-            Class.forName("org.apache.derby.jdbc.ClientDriver");
-            String driverURL2 = "jdbc:derby://localhost:1527/Kumiawase";
-            Connection con2 = DriverManager.getConnection(driverURL2, "db", "db");
-            // Connection con = jdbctest.getConnection();
-            Statement stmt2 = con2.createStatement();
-            String sql2 = "select * from T_SHOHIN";
-            ResultSet rs2 = stmt2.executeQuery(sql2);
-            List<Map<String, Object>> lane = new ArrayList<Map<String, Object>>();
-            while (rs2.next()) {
-                Map<String, Object> record2 = new HashMap<String, Object>();
-                record2.put("id", new Integer(rs2.getInt("SHOHIN_ID")));
-                record2.put("name", rs2.getString("SHOHIN_NAME"));
-                record2.put("price", new Integer(rs2.getInt("PRICE")));
-                lane.add(record2);
-            }
+			manager.close();
+			request.setAttribute("data", lane);
 
-            rs2.close();
-            stmt2.close();
-            con2.close();
-            request.setAttribute("data", lane);
+			RequestDispatcher rd = request
+					.getRequestDispatcher("/laneListFromDB.jsp");
+			rd.forward(request, response);
 
-            RequestDispatcher rd = request.getRequestDispatcher("/laneListFromDB.jsp");
-            rd.forward(request, response);
+		} catch (Exception e) {
+			throw new ServletException(e);
+		}
 
+	}
 
-        } catch (Exception e) {
-            throw new ServletException(e);
-        }
-    }
+	// <editor-fold defaultstate="collapsed"
+	// desc="HttpServlet methods. Click on the + sign on the left to edit the code.">
+	/**
+	 * Handles the HTTP <code>GET</code> method.
+	 *
+	 * @param request
+	 *            servlet request
+	 * @param response
+	 *            servlet response
+	 * @throws ServletException
+	 *             if a servlet-specific error occurs
+	 * @throws IOException
+	 *             if an I/O error occurs
+	 */
+	@Override
+	protected void doGet(HttpServletRequest request,
+			HttpServletResponse response) throws ServletException, IOException {
+		processRequest(request, response);
+	}
 
-    // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">
-    /**
-     * Handles the HTTP
-     * <code>GET</code> method.
-     *
-     * @param request servlet request
-     * @param response servlet response
-     * @throws ServletException if a servlet-specific error occurs
-     * @throws IOException if an I/O error occurs
-     */
-    @Override
-    protected void doGet(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
-        processRequest(request, response);
-    }
+	/**
+	 * Handles the HTTP <code>POST</code> method.
+	 *
+	 * @param request
+	 *            servlet request
+	 * @param response
+	 *            servlet response
+	 * @throws ServletException
+	 *             if a servlet-specific error occurs
+	 * @throws IOException
+	 *             if an I/O error occurs
+	 */
+	@Override
+	protected void doPost(HttpServletRequest request,
+			HttpServletResponse response) throws ServletException, IOException {
+		processRequest(request, response);
+	}
 
-    /**
-     * Handles the HTTP
-     * <code>POST</code> method.
-     *
-     * @param request servlet request
-     * @param response servlet response
-     * @throws ServletException if a servlet-specific error occurs
-     * @throws IOException if an I/O error occurs
-     */
-    @Override
-    protected void doPost(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
-        processRequest(request, response);
-    }
-
-    /**
-     * Returns a short description of the servlet.
-     *
-     * @return a String containing servlet description
-     */
-    @Override
-    public String getServletInfo() {
-        return "Short description";
-    }// </editor-fold>
+	/**
+	 * Returns a short description of the servlet.
+	 *
+	 * @return a String containing servlet description
+	 */
+	@Override
+	public String getServletInfo() {
+		return "Short description";
+	}// </editor-fold>
 }
