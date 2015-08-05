@@ -36,6 +36,14 @@
         <servlet-name>AddLaneServlet</servlet-name>
         <servlet-class>ticket.AddLaneServlet</servlet-class>
     </servlet>
+    <servlet>
+        <servlet-name>ThanksServlet</servlet-name>
+        <servlet-class>ticket.ThanksServlet</servlet-class>
+    </servlet>
+    <servlet>
+        <servlet-name>GetHistoryServlet</servlet-name>
+        <servlet-class>ticket.GetHistoryServlet</servlet-class>
+    </servlet>
     
     
     <servlet-mapping>
@@ -74,8 +82,21 @@
         <servlet-name>AddLaneServlet</servlet-name>
         <url-pattern>/addLane.do</url-pattern>
     </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>ThanksServlet</servlet-name>
+        <url-pattern>/thanks.do</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>GetHistoryServlet</servlet-name>
+        <url-pattern>/getHistory.do</url-pattern>
+    </servlet-mapping>
     
     
+    <context-param>
+    	<param-name>javax.servlet.jsp.jstl.fmt.timeZone</param-name>
+    	<param-value>Asia/Tokyo</param-value>
+ 	</context-param>
+
     
     <session-config>
         <session-timeout>

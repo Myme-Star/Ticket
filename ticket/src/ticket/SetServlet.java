@@ -51,28 +51,33 @@ public class SetServlet extends HttpServlet {
 
 		// PrintWriter out = response.getWriter();
 
-		// Check Box の情報をとりだす。
+
 		HttpSession session = request.getSession();
-		String[] strVals = request.getParameterValues("placeid");
-		int numChecks = 0;
-		if (strVals != null) {
-			numChecks = strVals.length; // チェックの個数
-		} else { // 何もチェックされていない。
-			numChecks = 0;
-		}
+		String Skaijou = (String)session.getAttribute("kaijou");
+		
+		
 
 		try {
-
 			PersistenceManagerFactory factory = PMF.get();
 			PersistenceManager manager = factory.getPersistenceManager();
+			if(Skaijou==null){
+				String[] strVals = request.getParameterValues("placeid");
+				int numChecks = 0;
+				if (strVals != null) {
+					numChecks = strVals.length; // チェックの個数
+				} else { // 何もチェックされていない。
+					numChecks = 0;
+					RequestDispatcher rd = request.getRequestDispatcher("/login.do");
+					rd.forward(request, response);
+				}
+				
+				long idFromCB = Long.parseLong(strVals[0]);
+				PlaceData obj = (PlaceData) (manager.getObjectById(PlaceData.class, idFromCB));
 
-			long idFromCB = Long.parseLong(strVals[0]);
-			PlaceData obj = (PlaceData) (manager.getObjectById(PlaceData.class, idFromCB));
-
-			// 表示のため、結果をリクエスト変数にしまう。
-			request.setAttribute("count", numChecks);
-			session.setAttribute("kaijou", obj.getPlace());
-
+				// 表示のため、結果をリクエスト変数にしまう。
+				request.setAttribute("count", numChecks);
+				session.setAttribute("kaijou", obj.getPlace());
+			}
 			// laneの情報を呼び出す
 			String que = "select from " + LaneData.class.getName()
 					+ " order by idx asc";

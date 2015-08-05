@@ -16,7 +16,7 @@
     <form action="login.do" method="post" class="login">
         <table>
             <tr>
-                <td>会員番号</td>
+                <td>会員ID</td>
                 <td><input type="text" name="user" size="16" value="" /></td>
             </tr>
             <tr>

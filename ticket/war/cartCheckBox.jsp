@@ -35,11 +35,14 @@
 		
 		<h2>合計金額：${total}</h2>
 
-		<form action="thankyou.jsp" method="post">
+		<form action="thanks.do" method="post">
 			<input type="submit" name="place" value="この内容で注文する" />
 		</form>
-		<form action="laneListFromDB.jsp" method="post">
-			<input type="submit" name="place" value="注文をやり直す" />
+		<form action="set.do" method="post">
+			<input type="submit" name="place" value="レーンを選び直す" />
+		</form>
+		<form action="login.do" method="post">
+			<input type="submit" name="place" value="会場から選び直す" />
 		</form>
 </body>
 </html>
