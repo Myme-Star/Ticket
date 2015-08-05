@@ -13,6 +13,7 @@
 <title>JSP Page</title>
 </head>
 <body>
+	<p>
 	<h1>イベント会場一覧</h1>
 	<div align="center">
 
@@ -31,9 +32,15 @@
 			</table>
 			<input type="submit" name="set.do" value="レーン選択へ進む" />
 		</form>
-
+	</div>
+	</p>
+	<div align="center">
+		<form action="getHistory.do" method="post">
+			<input type="submit" name="history" value="購入履歴を見る" />
+		</form>
 		<form action="logout.do" method="post">
 			<input type="submit" name="logout" value="ログアウト" />
 		</form>
+	</div>
 </body>
 </html>

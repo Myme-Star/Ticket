@@ -34,7 +34,7 @@
 			<input type="submit" name="cart.do" value="カートに入れ注文へ進む" />
 		</form>
 
-		<form action="placeListFromDB.jsp" method="post">
+		<form action="login.do" method="post">
 			<input type="submit" name="place" value="もどる" />
 		</form>
 	</div>

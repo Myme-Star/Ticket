@@ -89,6 +89,7 @@ public class CartServlet extends HttpServlet {
 			// request.setAttribute("count", numChecks);
 			request.setAttribute("data", list);
 			request.setAttribute("total", total);
+			session.setAttribute("buyData", list);
 
 			RequestDispatcher rd = request
 					.getRequestDispatcher("/cartCheckBox.jsp");

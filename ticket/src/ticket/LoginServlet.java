@@ -43,22 +43,31 @@ public class LoginServlet extends HttpServlet {
 		List<PlaceData> tlist;
 
 		try {
-			// リクエストパラメータから入力されたパスワードを取り出し
-			String password = request.getParameter("password");
-			String user = request.getParameter("user");
-
+			String Suser = (String) session.getAttribute("user");
 			PersistenceManagerFactory factory = PMF.get();
 			PersistenceManager manager = factory.getPersistenceManager();
 			Query que;
-			try {
-				que = manager.newQuery(UserData.class);
-				que.setFilter("username==Uparam && password==Pparam");
-				que.declareParameters("String Uparam, String Pparam");
-				ulist = (List<UserData>) que.execute(user, password);
-				if (!ulist.isEmpty()) {
-					found = true;
+			if (Suser == null) {
+				// セッション変数が空のとき
+				// リクエストパラメータから入力されたパスワードを取り出し
+				String password = request.getParameter("password");
+				String user = request.getParameter("user");
+				try {
+					que = manager.newQuery(UserData.class);
+					que.setFilter("username==Uparam && password==Pparam");
+					que.declareParameters("String Uparam, String Pparam");
+					ulist = (List<UserData>) que.execute(user, password);
+					if (!ulist.isEmpty()) {
+						found = true;
+						// パスワードが正しい場合
+						// ユーザ名をセッション変数に格納する
+						session.setAttribute("user", user);
+						session.setAttribute("pass", password);
+					}
+				} catch (JDOObjectNotFoundException e) {
 				}
-			} catch (JDOObjectNotFoundException e) {
+			} else {
+				found = true;
 			}
 
 			String nextJsp;
@@ -71,11 +80,6 @@ public class LoginServlet extends HttpServlet {
 						.getRequestDispatcher(nextJsp);
 				dispatcher.forward(request, response);
 			} else {
-				// パスワードが正しい場合
-				// ユーザ名をセッション変数に格納する
-				session.setAttribute("user", user);
-				session.setAttribute("pass", password);
-
 				// データベースに商品についての問い合わせを行う
 				String query = "select from " + PlaceData.class.getName()
 						+ " order by idx asc";
